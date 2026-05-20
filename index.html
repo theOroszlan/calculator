@@ -7,6 +7,56 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <main>
+      <div class="wrapper">
+        <div class="calculator">
+          <div class="screen">
+            <input
+              class="display"
+              id="expression"
+              type="text"
+              size="15"
+              autocomplete="off"
+              autofocus
+              maxlength="15"
+            />
+            <span id="result-display"></span>
+          </div>
+          <div><span class="erase">&#9003;</span></div>
+          <hr class="horizontal-line" />
+          <div class="buttons-wrapper">
+            <button class="round-btn red-btn" id="clear-btn">C</button>
+            <button class="round-btn orange-btn" id="brackets">( )</button>
+            <button class="round-btn orange-btn">%</button>
+            <button class="round-btn orange-btn operator">&divide;</button>
+
+            <button class="round-btn number-btn" data-value="7">7</button>
+            <button class="round-btn number-btn" data-value="8">8</button>
+            <button class="round-btn number-btn" data-value="9">9</button>
+            <button class="round-btn orange-btn operator">&times;</button>
+
+            <button class="round-btn number-btn" data-value="4">4</button>
+            <button class="round-btn number-btn" data-value="5">5</button>
+            <button class="round-btn number-btn" data-value="6">6</button>
+            <button class="round-btn orange-btn operator" data-value="-">
+              -
+            </button>
+
+            <button class="round-btn number-btn" data-value="1">1</button>
+            <button class="round-btn number-btn" data-value="2">2</button>
+            <button class="round-btn number-btn" data-value="3">3</button>
+            <button class="round-btn orange-btn operator" data-value="+">
+              +
+            </button>
+
+            <button class="round-btn">+/-</button>
+            <button class="round-btn" id="zero" data-value="0">0</button>
+            <button class="round-btn" id="comma" data-value=",">,</button>
+            <button class="round-btn answer-btn">=</button>
+          </div>
+        </div>
+      </div>
+    </main>
     <script src="script.js"></script>
   </body>
 </html>
