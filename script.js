@@ -6,8 +6,16 @@ const operatorButtons = document.querySelectorAll(".operator");
 const percentButton = document.getElementById("percent");
 const bracketsButton = document.getElementById("brackets");
 const negationButton = document.getElementById("negation-btn");
+const answerButton = document.querySelector(".answer-btn");
 const eraseBtn = document.querySelector(".erase");
 const clearButton = document.getElementById("clear-btn");
+
+const operations = {
+  "*": (leftVariable, rightVariable) => leftVariable * rightVariable,
+  "/": (leftVariable, rightVariable) => leftVariable / rightVariable,
+  "+": (leftVariable, rightVariable) => leftVariable + rightVariable,
+  "-": (leftVariable, rightVariable) => leftVariable - rightVariable,
+};
 
 const numberRegex = /\d+$/;
 /*
@@ -15,7 +23,84 @@ const numberRegex = /\d+$/;
  * \u00D7 = Unicode multiplication sign.
  */
 const operatorRegex = /[\u00F7\u00D7\+\-]$/;
+const tokensRegex = /\d+(\.\d+)?|[/\*\-\+\(\)\%]/g;
 let openBrackets = 0;
+
+const performOperatorAssociativity = (
+  firstOperator,
+  SecondOperator,
+  expression,
+) => {
+  while (
+    expression.includes(firstOperator) ||
+    expression.includes(SecondOperator)
+  ) {
+    const operatorIndex = expression.findIndex(
+      (token) => token === firstOperator || token === SecondOperator,
+    );
+
+    const leftVariable = Number(expression[operatorIndex - 1]);
+    const rightVariable = Number(expression[operatorIndex + 1]);
+    const operator = expression[operatorIndex];
+
+    const answer = operations[operator](leftVariable, rightVariable);
+
+    expression.splice(operatorIndex - 1, 3, answer.toString());
+  }
+};
+const evaluatePercentages = (expression) => {
+  for (let i = 0; i < expression.length; i++) {
+    if (expression[i] === "%") {
+      const value = Number(expression[i - 1]);
+      const result = value / 100;
+
+      expression.splice(i - 1, 2, result.toString());
+      i--;
+    }
+  }
+};
+const evaluateParanthesis = (expression) => {
+  while (expression.includes("(")) {
+    let stack = [];
+
+    let start = null;
+    let end = null;
+
+    for (let i = 0; i < expression.length; i++) {
+      if (expression[i] === "(") {
+        stack.push(i);
+      }
+
+      if (expression[i] === ")") {
+        start = stack.pop();
+        end = i;
+        break;
+      }
+    }
+
+    let extracted = expression.slice(start + 1, end);
+
+    performOperatorAssociativity("*", "/", extracted);
+    performOperatorAssociativity("+", "-", extracted);
+
+    const result = extracted[0];
+
+    expression.splice(start, end - start + 1, result);
+  }
+};
+const handleUnaryMinus = (expression) => {
+  for (let i = 0; i < expression.length; i++) {
+    if (
+      expression[i] === "-" &&
+      expression[i - 1] === "(" &&
+      expression[i + 1]
+    ) {
+      expression[i + 1] = "-" + expression[i + 1];
+      expression.splice(i, 1);
+      i--;
+    }
+  }
+};
 
 numberButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -227,4 +312,41 @@ negationButton.addEventListener("click", () => {
     expressionDisplay.value = expression;
     return;
   }
+});
+
+answerButton.addEventListener("click", () => {
+  let expression = expressionDisplay.value;
+  let last = expression[expression.length - 1];
+
+  if (last === ",") {
+    expression += "0";
+    last = "0";
+  }
+
+  if (expression.match(/^\d+(,\d+)?$/) || expression.length === 0) {
+    return;
+  }
+
+  if (expression.match(operatorRegex)) {
+    return;
+  }
+
+  while (openBrackets > 0) {
+    expression += ")";
+    openBrackets--;
+  }
+
+  expression = expression
+    .replace(/\u00F7/g, "/")
+    .replace(/\u00D7/g, "*")
+    .replaceAll(",", ".");
+
+  expression = expression.match(tokensRegex);
+  handleUnaryMinus(expression);
+  evaluatePercentages(expression);
+  evaluateParanthesis(expression);
+  performOperatorAssociativity("/", "*", expression);
+  performOperatorAssociativity("+", "-", expression);
+
+  expressionDisplay.value = expression[0].replace(".", ",");
 });
