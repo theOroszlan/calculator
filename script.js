@@ -215,6 +215,40 @@ const toggleNegation = () => {
     return;
   }
 };
+const appendOpenParenthesis = () => {
+  let expression = getExpression();
+  let last = expression[expression.length - 1];
+
+  if (last === ",") {
+    expression += "0";
+  }
+
+  if (expression.match(/[\d)%]$/)) {
+    expression += "\u00D7(";
+  } else {
+    expression += "(";
+  }
+
+  openBrackets++;
+  setExpression(expression);
+};
+const appendCloseParenthesis = () => {
+  let expression = getExpression();
+
+  if (openBrackets <= 0) {
+    return;
+  }
+
+  let last = expression[expression.length - 1];
+
+  if (last === ",") {
+    expression += "0";
+  }
+
+  expression += ")";
+  openBrackets--;
+  setExpression(expression);
+};
 
 const performOperatorAssociativity = (
   firstOperator,
@@ -354,6 +388,50 @@ eraseBtn.addEventListener("click", () => backspace());
 bracketsButton.addEventListener("click", () => toggleParentheses());
 
 negationButton.addEventListener("click", () => toggleNegation());
+
+expressionDisplay.addEventListener("keydown", (e) => {
+  e.preventDefault();
+  const keyboardValue = e.key;
+
+  if (keyboardValue.match(/\d/)) {
+    appendNumber(keyboardValue);
+    return;
+  }
+
+  switch (keyboardValue) {
+    case "*":
+      appendOperator("\u00D7");
+      break;
+    case "/":
+      appendOperator("\u00F7");
+      break;
+    case "+":
+      appendOperator(keyboardValue);
+      break;
+    case "-":
+      appendOperator(keyboardValue);
+      break;
+    case "%":
+      appendPercent(keyboardValue);
+      break;
+    case ",":
+      appendComma(keyboardValue);
+      break;
+    case "(":
+      appendOpenParenthesis();
+      break;
+    case ")":
+      appendCloseParenthesis();
+      break;
+    case "Backspace":
+      backspace();
+      break;
+    case "=":
+    case "Enter":
+      evaluate(expressionDisplay) ?? expressionDisplay.value;
+      break;
+  }
+});
 
 answerButton.addEventListener(
   "click",
