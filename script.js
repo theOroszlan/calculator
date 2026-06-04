@@ -437,3 +437,6 @@ answerButton.addEventListener(
   "click",
   () => evaluate(expressionDisplay) ?? expressionDisplay.value,
 );
+window.addEventListener("click", () => {
+  expressionDisplay.focus();
+});
