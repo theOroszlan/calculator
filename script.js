@@ -1,6 +1,5 @@
 const expressionDisplay = document.getElementById("expression");
 const numberButtons = document.querySelectorAll(".number-btn");
-const zeroButton = document.getElementById("zero");
 const commaButton = document.getElementById("comma");
 const operatorButtons = document.querySelectorAll(".operator");
 const percentButton = document.getElementById("percent");
@@ -25,18 +24,209 @@ const numberRegex = /\d+$/;
 const operatorRegex = /[\u00F7\u00D7\+\-]$/;
 const tokensRegex = /\d+(\.\d+)?|[/\*\-\+\(\)\%]/g;
 let openBrackets = 0;
+const setExpression = (value) => {
+  expressionDisplay.value = value;
+};
+const getExpression = () => expressionDisplay.value;
+
+const appendNumber = (value) => {
+  let expression = getExpression();
+
+  if (expression.length === 1 && value === "0" && expression === "0") {
+    return;
+  }
+
+  if (expression.match(/[\)%]$/)) {
+    expression += `\u00D7${value}`;
+    setExpression(expression);
+    return;
+  }
+
+  expression += value;
+  setExpression(expression);
+};
+const appendComma = (value) => {
+  let expression = getExpression();
+
+  if (expression.match(/\d+,\d*$/) || expression.length === 0) {
+    return;
+  }
+  if (expression.match(/[\)%]$/)) {
+    expression += `\u00D70${value}`;
+    setExpression(expression);
+    return;
+  }
+
+  if (expression.match(operatorRegex) || expression.match(/\($/)) {
+    expression += `0${value}`;
+    setExpression(expression);
+    return;
+  }
+
+  expression += value;
+  setExpression(expression);
+};
+const appendOperator = (value) => {
+  let expression = getExpression();
+  let last = expression[expression.length - 1];
+
+  if (expression.match(operatorRegex)) {
+    if (
+      expression[expression.length - 2] === "(" &&
+      !(value === "+" || value === "-")
+    ) {
+      return;
+    }
+    expression = expression.replace(operatorRegex, value);
+    setExpression(expression);
+    return;
+  }
+
+  if (expression.match(numberRegex) || expression.match(/[\)%]$/)) {
+    expression += value;
+    setExpression(expression);
+    return;
+  }
+
+  if (expression.match(/\($/) && (value === "+" || value === "-")) {
+    expression += value;
+    setExpression(expression);
+    return;
+  }
+
+  if (last === ",") {
+    expression += `0${value}`;
+    setExpression(expression);
+    return;
+  }
+};
+const appendPercent = (value) => {
+  let expression = getExpression();
+  let last = expression[expression.length - 1];
+
+  if (!(expression.match(numberRegex) || expression.match(/\)|,$/))) {
+    return;
+  }
+
+  if (last === ",") {
+    expression += `0${value}`;
+    setExpression(expression);
+    return;
+  }
+
+  expression += value;
+  setExpression(expression);
+};
+const backspace = () => {
+  let expression = getExpression();
+  let last = expression[expression.length - 1];
+
+  if (expression.length === 0) {
+    return;
+  }
+
+  if (last === "(") {
+    openBrackets--;
+  }
+
+  if (last === ")") {
+    openBrackets++;
+  }
+  let remaining = expression.split("");
+  remaining.splice(remaining.length - 1, 1);
+
+  setExpression(remaining.join(""));
+};
+const toggleParentheses = () => {
+  let expression = getExpression();
+  let last = expression[expression.length - 1];
+
+  if (
+    expression.length === 0 ||
+    expression.match(operatorRegex) ||
+    last === "("
+  ) {
+    expression += "(";
+    openBrackets++;
+    setExpression(expression);
+    return;
+  }
+
+  if (expression.match(numberRegex) || last === "%" || last === ")") {
+    if (openBrackets > 0) {
+      expression += ")";
+      openBrackets--;
+    } else {
+      expression += "\u00D7(";
+      openBrackets++;
+    }
+
+    setExpression(expression);
+    return;
+  }
+
+  if (last === ",") {
+    if (openBrackets > 0) {
+      expression += "0)";
+      openBrackets--;
+    } else {
+      expression += "0\u00D7(";
+      openBrackets++;
+    }
+    setExpression(expression);
+    return;
+  }
+};
+const toggleNegation = () => {
+  let expression = getExpression();
+  let last = expression[expression.length - 1];
+
+  if (last === "%" || last === ")") {
+    expression += "\u00D7(-";
+    openBrackets++;
+    setExpression(expression);
+    return;
+  }
+
+  if (expression.match(/\(\-(?=\d*,?\d*$)/)) {
+    expression = expression.replace(/\(\-(?=\d*,?\d*$)/, "");
+    openBrackets--;
+    setExpression(expression);
+    return;
+  }
+
+  if (
+    expression.length === 0 ||
+    expression.match(operatorRegex) ||
+    last === "("
+  ) {
+    expression += "(-";
+    openBrackets++;
+    setExpression(expression);
+    return;
+  }
+
+  const numMatch = expression.match(/\d+,?\d*$/);
+  if (numMatch) {
+    const num = numMatch[0];
+    expression = expression.replace(/\d+,?\d*$/, `(-${num}`);
+    openBrackets++;
+    setExpression(expression);
+    return;
+  }
+};
 
 const performOperatorAssociativity = (
   firstOperator,
-  SecondOperator,
+  secondOperator,
   expression,
 ) => {
   while (
     expression.includes(firstOperator) ||
-    expression.includes(SecondOperator)
+    expression.includes(secondOperator)
   ) {
     const operatorIndex = expression.findIndex(
-      (token) => token === firstOperator || token === SecondOperator,
+      (token) => token === firstOperator || token === secondOperator,
     );
 
     const leftVariable = Number(expression[operatorIndex - 1]);
@@ -101,221 +291,8 @@ const handleUnaryMinus = (expression) => {
     }
   }
 };
-
-numberButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    let expression = expressionDisplay.value;
-
-    if (expression.match(/\)$/) || expression.match(/%$/)) {
-      expression += `\u00D7${button.dataset.value}`;
-      expressionDisplay.value = expression;
-      return;
-    }
-
-    expression += button.dataset.value;
-    expressionDisplay.value = expression;
-  });
-});
-
-zeroButton.addEventListener("click", () => {
-  let expression = expressionDisplay.value;
-  if (expression.match(/[\)%]$/)) {
-    expression += `\u00D7${zeroButton.dataset.value}`;
-    expressionDisplay.value = expression;
-    return;
-  }
-  expression += zeroButton.dataset.value;
-  expressionDisplay.value = expression;
-});
-
-commaButton.addEventListener("click", () => {
-  let expression = expressionDisplay.value;
-
-  if (expression.match(/\d+,\d*$/) || expression.length === 0) {
-    return;
-  }
-  if (expression.match(/[\)%]$/)) {
-    expression += `\u00D70${commaButton.dataset.value}`;
-    expressionDisplay.value = expression;
-    return;
-  }
-
-  if (expression.match(operatorRegex) || expression.match(/\($/)) {
-    expression += `0${commaButton.dataset.value}`;
-    expressionDisplay.value = expression;
-    return;
-  }
-
-  expression += commaButton.dataset.value;
-  expressionDisplay.value = expression;
-});
-
-operatorButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    let expression = expressionDisplay.value;
-    let last = expression[expression.length - 1];
-
-    if (expression.match(operatorRegex)) {
-      if (
-        expression[expression.length - 2] === "(" &&
-        !(button.dataset.value === "+" || button.dataset.value === "-")
-      ) {
-        return;
-      }
-      expression = expression.replace(operatorRegex, button.dataset.value);
-      expressionDisplay.value = expression;
-      return;
-    }
-
-    if (expression.match(numberRegex) || expression.match(/[\)%]$/)) {
-      expression += button.dataset.value;
-      expressionDisplay.value = expression;
-      return;
-    }
-
-    if (
-      expression.match(/\($/) &&
-      (button.dataset.value === "+" || button.dataset.value === "-")
-    ) {
-      expression += button.dataset.value;
-      expressionDisplay.value = expression;
-      return;
-    }
-
-    if (last === ",") {
-      expression += `0${button.dataset.value}`;
-      expressionDisplay.value = expression;
-      return;
-    }
-  });
-});
-
-percentButton.addEventListener("click", () => {
-  let expression = expressionDisplay.value;
-  let last = expression[expression.length - 1];
-
-  if (!(expression.match(numberRegex) || expression.match(/\)|,$/))) {
-    return;
-  }
-
-  if (last === ",") {
-    expression += `0${percentButton.dataset.value}`;
-    expressionDisplay.value = expression;
-    return;
-  }
-
-  expression += percentButton.dataset.value;
-  expressionDisplay.value = expression;
-});
-
-clearButton.addEventListener("click", () => {
-  openBrackets = 0;
-  expressionDisplay.value = "";
-});
-
-eraseBtn.addEventListener("click", () => {
-  let expression = expressionDisplay.value;
-  let last = expression[expression.length - 1];
-
-  if (expression.length === 0) {
-    return;
-  }
-
-  if (last === "(") {
-    openBrackets--;
-  }
-
-  if (last === ")") {
-    openBrackets++;
-  }
-  let remaining = expression.split("");
-  remaining.splice(remaining.length - 1, 1);
-
-  expressionDisplay.value = remaining.join("");
-});
-
-bracketsButton.addEventListener("click", () => {
-  let expression = expressionDisplay.value;
-  let last = expression[expression.length - 1];
-
-  if (
-    expression.length === 0 ||
-    expression.match(operatorRegex) ||
-    last === "("
-  ) {
-    expression += "(";
-    openBrackets++;
-    expressionDisplay.value = expression;
-    return;
-  }
-
-  if (expression.match(numberRegex) || last === "%" || last === ")") {
-    if (openBrackets > 0) {
-      expression += ")";
-      openBrackets--;
-    } else {
-      expression += "\u00D7(";
-      openBrackets++;
-    }
-
-    expressionDisplay.value = expression;
-    return;
-  }
-
-  if (last === ",") {
-    if (openBrackets > 0) {
-      expression += "0)";
-      openBrackets--;
-    } else {
-      expression += "0\u00D7(";
-      openBrackets++;
-    }
-    expressionDisplay.value = expression;
-    return;
-  }
-});
-
-negationButton.addEventListener("click", () => {
-  let expression = expressionDisplay.value;
-  let last = expression[expression.length - 1];
-
-  if (last === "%" || last === ")") {
-    expression += "\u00D7(-";
-    openBrackets++;
-    expressionDisplay.value = expression;
-    return;
-  }
-
-  if (expression.match(/\(\-(?=\d*,?\d*$)/)) {
-    expression = expression.replace(/\(\-(?=\d*,?\d*$)/, "");
-    openBrackets--;
-    expressionDisplay.value = expression;
-    return;
-  }
-
-  if (
-    expression.length === 0 ||
-    expression.match(operatorRegex) ||
-    last === "("
-  ) {
-    expression += "(-";
-    openBrackets++;
-    expressionDisplay.value = expression;
-    return;
-  }
-
-  const numMatch = expression.match(/\d+,?\d*$/);
-  if (numMatch) {
-    const num = numMatch[0];
-    expression = expression.replace(/\d+,?\d*$/, `(-${num}`);
-    openBrackets++;
-    expressionDisplay.value = expression;
-    return;
-  }
-});
-
-answerButton.addEventListener("click", () => {
-  let expression = expressionDisplay.value;
+const evaluate = (outputElement) => {
+  let expression = getExpression();
   let last = expression[expression.length - 1];
 
   if (last === ",") {
@@ -348,5 +325,37 @@ answerButton.addEventListener("click", () => {
   performOperatorAssociativity("/", "*", expression);
   performOperatorAssociativity("+", "-", expression);
 
-  expressionDisplay.value = expression[0].replace(".", ",");
+  outputElement.value = expression[0].replace(".", ",");
+};
+
+numberButtons.forEach((button) => {
+  button.addEventListener("click", () => appendNumber(button.dataset.value));
 });
+
+commaButton.addEventListener("click", () =>
+  appendComma(commaButton.dataset.value),
+);
+
+operatorButtons.forEach((button) => {
+  button.addEventListener("click", () => appendOperator(button.dataset.value));
+});
+
+percentButton.addEventListener("click", () =>
+  appendPercent(percentButton.dataset.value),
+);
+
+clearButton.addEventListener("click", () => {
+  openBrackets = 0;
+  setExpression("");
+});
+
+eraseBtn.addEventListener("click", () => backspace());
+
+bracketsButton.addEventListener("click", () => toggleParentheses());
+
+negationButton.addEventListener("click", () => toggleNegation());
+
+answerButton.addEventListener(
+  "click",
+  () => evaluate(expressionDisplay) ?? expressionDisplay.value,
+);
