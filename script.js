@@ -24,10 +24,22 @@ const numberRegex = /\d+$/;
 const operatorRegex = /[\u00F7\u00D7\+\-]$/;
 const tokensRegex = /\d+(\.\d+)?|[/\*\-\+\(\)\%]/g;
 let openBrackets = 0;
+
 const setExpression = (value) => {
   expressionDisplay.value = value;
 };
 const getExpression = () => expressionDisplay.value;
+const updateExpressionDisplay = (display) => {
+  display.rows = 1;
+  display.style.fontSize = "clamp(1.85rem, 3vw, 2rem)";
+  if (display.scrollHeight > display.clientHeight) {
+    display.style.fontSize = "clamp(1.4rem, 3vw, 1.7rem)";
+  }
+
+  if (display.scrollHeight > display.clientHeight) {
+    display.rows = 2;
+  }
+};
 
 const appendNumber = (value) => {
   let expression = getExpression();
@@ -39,11 +51,13 @@ const appendNumber = (value) => {
   if (expression.match(/[\)%]$/)) {
     expression += `\u00D7${value}`;
     setExpression(expression);
+    updateExpressionDisplay(expressionDisplay);
     return;
   }
 
   expression += value;
   setExpression(expression);
+  updateExpressionDisplay(expressionDisplay);
 };
 const appendComma = (value) => {
   let expression = getExpression();
@@ -136,6 +150,7 @@ const backspace = () => {
   remaining.splice(remaining.length - 1, 1);
 
   setExpression(remaining.join(""));
+  updateExpressionDisplay(expressionDisplay);
 };
 const toggleParentheses = () => {
   let expression = getExpression();
@@ -381,6 +396,7 @@ percentButton.addEventListener("click", () =>
 clearButton.addEventListener("click", () => {
   openBrackets = 0;
   setExpression("");
+  updateExpressionDisplay(expressionDisplay);
 });
 
 eraseBtn.addEventListener("click", () => backspace());

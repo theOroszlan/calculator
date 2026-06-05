@@ -54,15 +54,20 @@ main {
 .display {
   border: none;
   width: 100%;
-  height: 4rem;
   text-align: end;
-  padding-block-start: 1rem;
   background-color: var(--bg-color);
   color: var(--primary-color);
   font-size: clamp(1.85rem, 3vw, 2rem);
 
+  resize: none;
+  scrollbar-width: none;
+
   &:focus {
     outline: none;
+  }
+
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 
