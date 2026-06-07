@@ -1,4 +1,5 @@
 const expressionDisplay = document.getElementById("expression");
+const resultDisplay = document.getElementById("result-display");
 const numberButtons = document.querySelectorAll(".number-btn");
 const commaButton = document.getElementById("comma");
 const operatorButtons = document.querySelectorAll(".operator");
@@ -40,11 +41,18 @@ const updateExpressionDisplay = (display) => {
     display.rows = 2;
   }
 };
+const setResultDisplay = (value) => {
+  resultDisplay.textContent = value;
+};
 
 const appendNumber = (value) => {
   let expression = getExpression();
 
   if (expression.length === 1 && value === "0" && expression === "0") {
+    return;
+  }
+
+  if (expression.match(/\d{12}$/)) {
     return;
   }
 
@@ -58,6 +66,10 @@ const appendNumber = (value) => {
   expression += value;
   setExpression(expression);
   updateExpressionDisplay(expressionDisplay);
+
+  if (!expression.match(/^\d+$/)) {
+    setResultDisplay(evaluate());
+  }
 };
 const appendComma = (value) => {
   let expression = getExpression();
@@ -130,6 +142,7 @@ const appendPercent = (value) => {
 
   expression += value;
   setExpression(expression);
+  setResultDisplay(evaluate());
 };
 const backspace = () => {
   let expression = getExpression();
@@ -149,8 +162,21 @@ const backspace = () => {
   let remaining = expression.split("");
   remaining.splice(remaining.length - 1, 1);
 
-  setExpression(remaining.join(""));
+  expression = remaining.join("");
+  last = expression[expression.length - 1];
+
+  setExpression(expression);
   updateExpressionDisplay(expressionDisplay);
+
+  if (
+    expression.length === 0 ||
+    last.match(operatorRegex) ||
+    expression.match(/^\d+$/)
+  ) {
+    setResultDisplay("");
+    return;
+  }
+  setResultDisplay(evaluate());
 };
 const toggleParentheses = () => {
   let expression = getExpression();
@@ -340,7 +366,7 @@ const handleUnaryMinus = (expression) => {
     }
   }
 };
-const evaluate = (outputElement) => {
+const evaluate = () => {
   let expression = getExpression();
   let last = expression[expression.length - 1];
 
@@ -350,7 +376,7 @@ const evaluate = (outputElement) => {
   }
 
   if (expression.match(/^\d+(,\d+)?$/) || expression.length === 0) {
-    return;
+    return expression;
   }
 
   if (expression.match(operatorRegex)) {
@@ -374,7 +400,7 @@ const evaluate = (outputElement) => {
   performOperatorAssociativity("/", "*", expression);
   performOperatorAssociativity("+", "-", expression);
 
-  outputElement.value = expression[0].replace(".", ",");
+  return expression[0].replace(".", ",");
 };
 
 numberButtons.forEach((button) => {
@@ -397,6 +423,7 @@ clearButton.addEventListener("click", () => {
   openBrackets = 0;
   setExpression("");
   updateExpressionDisplay(expressionDisplay);
+  setResultDisplay("");
 });
 
 eraseBtn.addEventListener("click", () => backspace());
@@ -449,10 +476,10 @@ expressionDisplay.addEventListener("keydown", (e) => {
   }
 });
 
-answerButton.addEventListener(
-  "click",
-  () => evaluate(expressionDisplay) ?? expressionDisplay.value,
-);
+answerButton.addEventListener("click", () => {
+  setExpression(evaluate());
+  setResultDisplay("");
+});
 window.addEventListener("click", () => {
   expressionDisplay.focus();
 });

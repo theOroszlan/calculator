@@ -54,6 +54,7 @@ main {
 .display {
   border: none;
   width: 100%;
+  height: 3.6rem;
   text-align: end;
   background-color: var(--bg-color);
   color: var(--primary-color);
@@ -73,6 +74,7 @@ main {
 
 #result-display {
   font-size: 1.25rem;
+  height: 1.4rem;
   color: var(--primary-color);
   opacity: 0.6;
   justify-self: end;
