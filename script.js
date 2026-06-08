@@ -9,6 +9,7 @@ const negationButton = document.getElementById("negation-btn");
 const answerButton = document.querySelector(".answer-btn");
 const eraseBtn = document.querySelector(".erase");
 const clearButton = document.getElementById("clear-btn");
+const errorDisplay = document.querySelector(".error-display");
 
 const operations = {
   "*": (leftVariable, rightVariable) => leftVariable * rightVariable,
@@ -56,6 +57,15 @@ const countOpenParantheses = () => {
     expression.filter((element) => element === ")").length
   );
 };
+const displayErrorMessage = (message = "Invalid format used") => {
+  errorDisplay.textContent = message;
+  errorDisplay.style.display = "inline-block";
+
+  setTimeout(() => {
+    errorDisplay.textContent = "";
+    errorDisplay.style.display = "none";
+  }, 1000);
+};
 
 const appendNumber = (value) => {
   let expression = getExpression();
@@ -65,6 +75,7 @@ const appendNumber = (value) => {
   }
 
   if (expression.match(/\d{12}$/)) {
+    displayErrorMessage("Can't enter more than 12 digits");
     return;
   }
 
@@ -106,11 +117,17 @@ const appendOperator = (value) => {
   let expression = getExpression();
   let last = expression[expression.length - 1];
 
+  if (last === "(" && !(value === "+" || value === "-")) {
+    displayErrorMessage();
+    return;
+  }
+
   if (expression.match(operatorRegex)) {
     if (
       expression[expression.length - 2] === "(" &&
       !(value === "+" || value === "-")
     ) {
+      displayErrorMessage();
       return;
     }
     expression = expression.replace(operatorRegex, value);
@@ -141,6 +158,7 @@ const appendPercent = (value) => {
   let last = expression[expression.length - 1];
 
   if (!(expression.match(numberRegex) || expression.match(/\)|,$/))) {
+    displayErrorMessage();
     return;
   }
 
@@ -373,6 +391,7 @@ const evaluate = () => {
   }
 
   if (expression.match(operatorRegex)) {
+    displayErrorMessage();
     return;
   }
 

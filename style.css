@@ -105,6 +105,7 @@ main {
 }
 
 .buttons-wrapper {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 0.5rem;
@@ -134,4 +135,20 @@ main {
 .answer-btn {
   background-color: var(--secondary-color);
   font-weight: 600;
+}
+
+.error-display {
+  color: var(--primary-color);
+  background-color: #3d3c3c;
+  display: none;
+  position: absolute;
+  top: 70%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.5rem;
+  border-radius: 1rem;
+
+  width: max-content;
+  white-space: nowrap;
+  font-size: clamp(1em, 1.8vw, 1.25rem);
 }
