@@ -191,7 +191,8 @@ const backspace = () => {
   if (
     expression.length === 0 ||
     last.match(operatorRegex) ||
-    expression.match(/^\d+$/)
+    expression.match(/^\d+$/) ||
+    last === "("
   ) {
     setResultDisplay("");
     return;
@@ -390,8 +391,7 @@ const evaluate = () => {
     return expression;
   }
 
-  if (expression.match(operatorRegex)) {
-    displayErrorMessage();
+  if (expression.match(operatorRegex) || last === "(") {
     return;
   }
 
@@ -489,7 +489,15 @@ expressionDisplay.addEventListener("keydown", (e) => {
 });
 
 answerButton.addEventListener("click", () => {
-  setExpression(evaluate());
+  let answer = evaluate();
+  if (answer !== undefined && !isNaN(answer)) {
+    setExpression(answer);
+  } else {
+    answer = getExpression();
+    setExpression(answer);
+    displayErrorMessage();
+  }
+
   setResultDisplay("");
 });
 window.addEventListener("click", () => {
