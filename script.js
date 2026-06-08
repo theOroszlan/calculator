@@ -24,7 +24,6 @@ const numberRegex = /\d+$/;
  */
 const operatorRegex = /[\u00F7\u00D7\+\-]$/;
 const tokensRegex = /\d+(\.\d+)?|[/\*\-\+\(\)\%]/g;
-let openBrackets = 0;
 
 const setExpression = (value) => {
   expressionDisplay.value = value;
@@ -43,6 +42,18 @@ const updateExpressionDisplay = (display) => {
 };
 const setResultDisplay = (value) => {
   resultDisplay.textContent = value;
+};
+
+const countOpenParantheses = () => {
+  let expression = getExpression().match(tokensRegex) || "";
+  if (expression.length === 0) {
+    return 0;
+  }
+
+  return (
+    expression.filter((element) => element === "(").length -
+    expression.filter((element) => element === ")").length
+  );
 };
 
 const appendNumber = (value) => {
@@ -152,13 +163,6 @@ const backspace = () => {
     return;
   }
 
-  if (last === "(") {
-    openBrackets--;
-  }
-
-  if (last === ")") {
-    openBrackets++;
-  }
   let remaining = expression.split("");
   remaining.splice(remaining.length - 1, 1);
 
@@ -181,6 +185,7 @@ const backspace = () => {
 const toggleParentheses = () => {
   let expression = getExpression();
   let last = expression[expression.length - 1];
+  let openBrackets = countOpenParantheses();
 
   if (
     expression.length === 0 ||
@@ -188,7 +193,6 @@ const toggleParentheses = () => {
     last === "("
   ) {
     expression += "(";
-    openBrackets++;
     setExpression(expression);
     return;
   }
@@ -196,10 +200,8 @@ const toggleParentheses = () => {
   if (expression.match(numberRegex) || last === "%" || last === ")") {
     if (openBrackets > 0) {
       expression += ")";
-      openBrackets--;
     } else {
       expression += "\u00D7(";
-      openBrackets++;
     }
 
     setExpression(expression);
@@ -209,10 +211,8 @@ const toggleParentheses = () => {
   if (last === ",") {
     if (openBrackets > 0) {
       expression += "0)";
-      openBrackets--;
     } else {
       expression += "0\u00D7(";
-      openBrackets++;
     }
     setExpression(expression);
     return;
@@ -224,14 +224,12 @@ const toggleNegation = () => {
 
   if (last === "%" || last === ")") {
     expression += "\u00D7(-";
-    openBrackets++;
     setExpression(expression);
     return;
   }
 
   if (expression.match(/\(\-(?=\d*,?\d*$)/)) {
     expression = expression.replace(/\(\-(?=\d*,?\d*$)/, "");
-    openBrackets--;
     setExpression(expression);
     return;
   }
@@ -242,7 +240,6 @@ const toggleNegation = () => {
     last === "("
   ) {
     expression += "(-";
-    openBrackets++;
     setExpression(expression);
     return;
   }
@@ -251,7 +248,6 @@ const toggleNegation = () => {
   if (numMatch) {
     const num = numMatch[0];
     expression = expression.replace(/\d+,?\d*$/, `(-${num}`);
-    openBrackets++;
     setExpression(expression);
     return;
   }
@@ -270,24 +266,22 @@ const appendOpenParenthesis = () => {
     expression += "(";
   }
 
-  openBrackets++;
   setExpression(expression);
 };
 const appendCloseParenthesis = () => {
   let expression = getExpression();
+  let last = expression[expression.length - 1];
+  let openBrackets = countOpenParantheses();
 
-  if (openBrackets <= 0) {
+  if (openBrackets <= 0 || last === "(" || expression.match(operatorRegex)) {
     return;
   }
-
-  let last = expression[expression.length - 1];
 
   if (last === ",") {
     expression += "0";
   }
 
   expression += ")";
-  openBrackets--;
   setExpression(expression);
 };
 
@@ -369,6 +363,7 @@ const handleUnaryMinus = (expression) => {
 const evaluate = () => {
   let expression = getExpression();
   let last = expression[expression.length - 1];
+  let openBrackets = countOpenParantheses();
 
   if (last === ",") {
     expression += "0";
@@ -400,7 +395,9 @@ const evaluate = () => {
   performOperatorAssociativity("/", "*", expression);
   performOperatorAssociativity("+", "-", expression);
 
-  return expression[0].replace(".", ",");
+  return expression[0].includes(".")
+    ? expression[0].replace(".", ",")
+    : expression[0];
 };
 
 numberButtons.forEach((button) => {
@@ -420,7 +417,6 @@ percentButton.addEventListener("click", () =>
 );
 
 clearButton.addEventListener("click", () => {
-  openBrackets = 0;
   setExpression("");
   updateExpressionDisplay(expressionDisplay);
   setResultDisplay("");
