@@ -27,6 +27,7 @@ const tokensRegex = /\d+(\.\d+)?|[/\*\-\+\(\)\%]/g;
 
 const setExpression = (value) => {
   expressionDisplay.value = value;
+  updateExpressionDisplay(expressionDisplay);
 };
 const getExpression = () => expressionDisplay.value;
 const updateExpressionDisplay = (display) => {
@@ -70,13 +71,11 @@ const appendNumber = (value) => {
   if (expression.match(/[\)%]$/)) {
     expression += `\u00D7${value}`;
     setExpression(expression);
-    updateExpressionDisplay(expressionDisplay);
     return;
   }
 
   expression += value;
   setExpression(expression);
-  updateExpressionDisplay(expressionDisplay);
 
   if (!expression.match(/^\d+$/)) {
     setResultDisplay(evaluate());
@@ -170,7 +169,6 @@ const backspace = () => {
   last = expression[expression.length - 1];
 
   setExpression(expression);
-  updateExpressionDisplay(expressionDisplay);
 
   if (
     expression.length === 0 ||
@@ -418,7 +416,6 @@ percentButton.addEventListener("click", () =>
 
 clearButton.addEventListener("click", () => {
   setExpression("");
-  updateExpressionDisplay(expressionDisplay);
   setResultDisplay("");
 });
 
