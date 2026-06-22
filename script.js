@@ -163,24 +163,28 @@ const appendOperator = (value) => {
     }
     expression = expression.replace(operatorRegex, value);
     setExpression(expression);
+    setResultDisplay("");
     return;
   }
 
   if (expression.match(numberRegex) || expression.match(/[\)%]$/)) {
     expression += value;
     setExpression(expression);
+    setResultDisplay("");
     return;
   }
 
   if (expression.match(/\($/) && (value === "+" || value === "-")) {
     expression += value;
     setExpression(expression);
+    setResultDisplay("");
     return;
   }
 
   if (last === ",") {
     expression += `0${value}`;
     setExpression(expression);
+    setResultDisplay("");
     return;
   }
 };
@@ -246,6 +250,7 @@ const toggleParentheses = () => {
   ) {
     expression += "(";
     setExpression(expression);
+    setResultDisplay("");
     return;
   }
 
@@ -254,6 +259,7 @@ const toggleParentheses = () => {
       expression += ")";
     } else {
       expression += "\u00D7(";
+      setResultDisplay("");
     }
 
     setExpression(expression);
@@ -265,6 +271,7 @@ const toggleParentheses = () => {
       expression += "0)";
     } else {
       expression += "0\u00D7(";
+      setResultDisplay("");
     }
     setExpression(expression);
     return;
@@ -329,6 +336,7 @@ const appendOpenParenthesis = () => {
   }
 
   setExpression(expression);
+  setResultDisplay("");
 };
 const appendCloseParenthesis = () => {
   let expression = getExpression();
