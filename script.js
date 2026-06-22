@@ -415,6 +415,7 @@ const evaluateParanthesis = (expression) => {
 
     let extracted = expression.slice(start + 1, end);
 
+    evaluatePercentages(extracted);
     performOperatorAssociativity("*", "/", extracted);
     performOperatorAssociativity("+", "-", extracted);
 
@@ -466,8 +467,8 @@ const evaluate = () => {
 
   expression = expression.match(tokensRegex);
   handleUnaryMinus(expression);
-  evaluatePercentages(expression);
   evaluateParanthesis(expression);
+  evaluatePercentages(expression);
   performOperatorAssociativity("/", "*", expression);
   performOperatorAssociativity("+", "-", expression);
 
