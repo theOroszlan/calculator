@@ -463,9 +463,26 @@ const evaluate = () => {
   performOperatorAssociativity("/", "*", expression);
   performOperatorAssociativity("+", "-", expression);
 
-  return expression[0].includes(".")
-    ? expression[0].replace(".", ",")
-    : expression[0];
+  return expression[0];
+};
+const calculateAnswer = () => {
+  let expression = getExpression();
+
+  if (expression.match(/^\d+$/)) {
+    return;
+  }
+
+  let answer = Number(evaluate());
+
+  if (!isNaN(answer)) {
+    answer = answer.toString().replace(".", ",");
+    setExpression(answer);
+    justEvaluated = true;
+  } else {
+    displayErrorMessage();
+  }
+
+  setResultDisplay("");
 };
 
 numberButtons.forEach((button) => {
@@ -535,24 +552,12 @@ expressionDisplay.addEventListener("keydown", (e) => {
       break;
     case "=":
     case "Enter":
-      evaluate(expressionDisplay) ?? expressionDisplay.value;
+      calculateAnswer();
       break;
   }
 });
 
-answerButton.addEventListener("click", () => {
-  let answer = evaluate();
-  if (answer !== undefined && !isNaN(answer)) {
-    setExpression(answer);
-    justEvaluated = true;
-  } else {
-    answer = getExpression();
-    setExpression(answer);
-    displayErrorMessage();
-  }
-
-  setResultDisplay("");
-});
+answerButton.addEventListener("click", calculateAnswer);
 window.addEventListener("click", () => {
   expressionDisplay.focus();
 });
