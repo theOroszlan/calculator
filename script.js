@@ -25,6 +25,7 @@ const numberRegex = /\d+$/;
  */
 const operatorRegex = /[\u00F7\u00D7\+\-]$/;
 const tokensRegex = /\d+(\.\d+)?|[/\*\-\+\(\)\%]/g;
+let justEvaluated = false;
 
 const setExpression = (value) => {
   expressionDisplay.value = value;
@@ -66,9 +67,28 @@ const displayErrorMessage = (message = "Invalid format used") => {
     errorDisplay.style.display = "none";
   }, 1000);
 };
+const handleEvaluatedAnswer = (expression) => {
+  if (!justEvaluated) {
+    return expression;
+  }
+
+  justEvaluated = false;
+
+  if (expression[0] === "-") {
+    return `(${expression})`;
+  }
+
+  return expression;
+};
 
 const appendNumber = (value) => {
   let expression = getExpression();
+
+  if (justEvaluated) {
+    setExpression(value);
+    justEvaluated = false;
+    return;
+  }
 
   if (expression.length === 1 && value === "0" && expression === "0") {
     return;
@@ -82,6 +102,7 @@ const appendNumber = (value) => {
   if (expression.match(/[\)%]$/)) {
     expression += `\u00D7${value}`;
     setExpression(expression);
+    setResultDisplay(evaluate());
     return;
   }
 
@@ -95,18 +116,27 @@ const appendNumber = (value) => {
 const appendComma = (value) => {
   let expression = getExpression();
 
-  if (expression.match(/\d+,\d*$/) || expression.length === 0) {
+  if (expression.length === 0 || justEvaluated) {
+    expression = `0${value}`;
+    setExpression(expression);
+    justEvaluated = false;
+    return;
+  }
+
+  if (expression.match(/\d+,\d*$/)) {
     return;
   }
   if (expression.match(/[\)%]$/)) {
     expression += `\u00D70${value}`;
     setExpression(expression);
+    setResultDisplay(evaluate());
     return;
   }
 
   if (expression.match(operatorRegex) || expression.match(/\($/)) {
     expression += `0${value}`;
     setExpression(expression);
+    setResultDisplay(evaluate());
     return;
   }
 
@@ -115,6 +145,7 @@ const appendComma = (value) => {
 };
 const appendOperator = (value) => {
   let expression = getExpression();
+  expression = handleEvaluatedAnswer(expression);
   let last = expression[expression.length - 1];
 
   if (last === "(" && !(value === "+" || value === "-")) {
@@ -155,6 +186,7 @@ const appendOperator = (value) => {
 };
 const appendPercent = (value) => {
   let expression = getExpression();
+  expression = handleEvaluatedAnswer(expression);
   let last = expression[expression.length - 1];
 
   if (!(expression.match(numberRegex) || expression.match(/\)|,$/))) {
@@ -165,6 +197,7 @@ const appendPercent = (value) => {
   if (last === ",") {
     expression += `0${value}`;
     setExpression(expression);
+    setResultDisplay(evaluate());
     return;
   }
 
@@ -175,6 +208,7 @@ const appendPercent = (value) => {
 const backspace = () => {
   let expression = getExpression();
   let last = expression[expression.length - 1];
+  justEvaluated = false;
 
   if (expression.length === 0) {
     return;
@@ -201,6 +235,7 @@ const backspace = () => {
 };
 const toggleParentheses = () => {
   let expression = getExpression();
+  expression = handleEvaluatedAnswer(expression);
   let last = expression[expression.length - 1];
   let openBrackets = countOpenParantheses();
 
@@ -237,6 +272,15 @@ const toggleParentheses = () => {
 };
 const toggleNegation = () => {
   let expression = getExpression();
+  if (justEvaluated) {
+    if (expression[0] === "-") {
+      expression = expression.replace(expression[0], "");
+      setExpression(expression);
+      justEvaluated = false;
+      return;
+    }
+    justEvaluated = false;
+  }
   let last = expression[expression.length - 1];
 
   if (last === "%" || last === ")") {
@@ -271,6 +315,7 @@ const toggleNegation = () => {
 };
 const appendOpenParenthesis = () => {
   let expression = getExpression();
+  expression = handleEvaluatedAnswer(expression);
   let last = expression[expression.length - 1];
 
   if (last === ",") {
@@ -290,7 +335,13 @@ const appendCloseParenthesis = () => {
   let last = expression[expression.length - 1];
   let openBrackets = countOpenParantheses();
 
-  if (openBrackets <= 0 || last === "(" || expression.match(operatorRegex)) {
+  if (
+    openBrackets <= 0 ||
+    last === "(" ||
+    expression.match(operatorRegex) ||
+    justEvaluated
+  ) {
+    displayErrorMessage();
     return;
   }
 
@@ -436,6 +487,7 @@ percentButton.addEventListener("click", () =>
 clearButton.addEventListener("click", () => {
   setExpression("");
   setResultDisplay("");
+  justEvaluated = false;
 });
 
 eraseBtn.addEventListener("click", () => backspace());
@@ -492,6 +544,7 @@ answerButton.addEventListener("click", () => {
   let answer = evaluate();
   if (answer !== undefined && !isNaN(answer)) {
     setExpression(answer);
+    justEvaluated = true;
   } else {
     answer = getExpression();
     setExpression(answer);
