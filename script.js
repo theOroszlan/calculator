@@ -297,12 +297,14 @@ const toggleNegation = () => {
   if (last === "%" || last === ")") {
     expression += "\u00D7(-";
     setExpression(expression);
+    setResultDisplay("");
     return;
   }
 
   if (expression.match(/\(\-(?=\d*,?\d*$)/)) {
     expression = expression.replace(/\(\-(?=\d*,?\d*$)/, "");
     setExpression(expression);
+    setResultDisplay(evaluate());
     return;
   }
 
@@ -313,6 +315,7 @@ const toggleNegation = () => {
   ) {
     expression += "(-";
     setExpression(expression);
+    setResultDisplay(evaluate());
     return;
   }
 
@@ -321,6 +324,7 @@ const toggleNegation = () => {
     const num = numMatch[0];
     expression = expression.replace(/\d+,?\d*$/, `(-${num}`);
     setExpression(expression);
+    setResultDisplay(evaluate());
     return;
   }
 };
