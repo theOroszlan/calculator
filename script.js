@@ -44,6 +44,10 @@ const updateExpressionDisplay = (display) => {
   }
 };
 const setResultDisplay = (value) => {
+  if (!isFinite(Number(value))) {
+    return;
+  }
+
   resultDisplay.textContent = value;
 };
 
@@ -482,14 +486,19 @@ const calculateAnswer = () => {
   }
 
   let answer = Number(evaluate());
-
-  if (!isNaN(answer)) {
-    answer = answer.toString().replace(".", ",");
-    setExpression(answer);
-    justEvaluated = true;
-  } else {
+  if (isNaN(answer)) {
     displayErrorMessage();
+    return;
   }
+
+  if (!isFinite(answer)) {
+    displayErrorMessage("Can't divide by zero");
+    return;
+  }
+
+  answer = answer.toString().replace(".", ",");
+  setExpression(answer);
+  justEvaluated = true;
 
   setResultDisplay("");
 };
