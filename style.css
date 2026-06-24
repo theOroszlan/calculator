@@ -9,7 +9,11 @@
   --primary-color: #fff;
   --secondary-color: orange;
   --btn-bg-color: #1e1e1e;
-  --btn-size: clamp(3.5rem, 6vw, 4.5rem);
+  --btn-size: 4.5rem;
+}
+
+body {
+  background-color: #4d4a4a;
 }
 
 main {
@@ -17,8 +21,8 @@ main {
   display: grid;
   place-items: center;
 
-  height: 100vh;
-  min-width: 330px;
+  width: 100vw;
+  min-height: 90vh;
 }
 
 .wrapper {
@@ -28,7 +32,7 @@ main {
   border-radius: 1.5rem;
   background-color: var(--bg-color);
   padding: 0.5rem;
-  width: clamp(300px, 32vw, 370px);
+  width: min(370px, 100%);
   box-shadow: 0 0 15px;
 }
 
@@ -58,7 +62,7 @@ main {
   text-align: end;
   background-color: var(--bg-color);
   color: var(--primary-color);
-  font-size: clamp(1.85rem, 3vw, 2rem);
+  font-size: 2rem;
 
   resize: none;
   scrollbar-width: none;
@@ -92,7 +96,7 @@ main {
   border: none;
   padding-right: 10px;
   cursor: pointer;
-  font-size: clamp(1em, 1.5vw, 1.3rem);
+  font-size: 1.3rem;
 }
 
 .horizontal-line {
@@ -117,9 +121,9 @@ main {
 
   border: 0;
   border-radius: 50%;
-  width: var(--btn-size);
   height: var(--btn-size);
-  font-size: clamp(1.5em, 2.8vw, 2rem);
+  min-width: 0;
+  font-size: min(10vw, 2rem);
   cursor: pointer;
 }
 
@@ -150,5 +154,5 @@ main {
 
   width: max-content;
   white-space: nowrap;
-  font-size: clamp(1em, 1.8vw, 1.25rem);
+  font-size: 1.25rem;
 }
