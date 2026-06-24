@@ -10,6 +10,9 @@
   --secondary-color: orange;
   --btn-bg-color: #1e1e1e;
   --btn-size: 4.5rem;
+
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
 }
 
 body {
@@ -31,7 +34,7 @@ main {
 
   border-radius: 1.5rem;
   background-color: var(--bg-color);
-  padding: 0.5rem;
+  padding: var(--space-xs);
   width: min(370px, 100%);
   box-shadow: 0 0 15px;
 }
@@ -44,7 +47,7 @@ main {
 }
 
 .calculator > div {
-  padding-block: 1rem;
+  padding-block: var(--space-sm);
   width: 90%;
   justify-self: center;
 }
@@ -52,7 +55,7 @@ main {
 .screen {
   display: grid;
   place-items: center;
-  gap: 0.5rem;
+  gap: var(--space-xs);
 }
 
 .display {
@@ -112,7 +115,7 @@ main {
   position: relative;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.5rem;
+  gap: var(--space-xs);
 }
 
 .round-btn {
@@ -149,7 +152,7 @@ main {
   top: 70%;
   left: 50%;
   transform: translateX(-50%);
-  padding: 0.5rem;
+  padding: var(--space-xs);
   border-radius: 1rem;
 
   width: max-content;
